@@ -7,9 +7,11 @@ import java.math.BigDecimal;
 @Data
 public class GiveVo {
 
+    // 钱包地址
     private String address;
 
-    private BigDecimal rewAmt;
+    // 能领取的收益
+    private BigDecimal amount;
 
     private Long orderId;
 

@@ -6,8 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
+import java.time.LocalDate;
 
 @Data
 @AllArgsConstructor
@@ -18,40 +17,11 @@ public class RichRewardBaseDo extends BaseEntity {
     /**
      * 当天矿场收益
      */
-    private BigDecimal rewBase;
+    private Long rewBase;
 
     /**
      * 收益日期
      */
-    private LocalDateTime rewData;
+    private LocalDate rewData;
 
-    /**
-     * 等级1收益
-     */
-    private BigDecimal lv1;
-
-    /**
-     * 等级2收益
-     */
-    private BigDecimal lv2;
-
-    /**
-     * 等级3收益
-     */
-    private BigDecimal lv3;
-
-    /**
-     * 等级4收益
-     */
-    private BigDecimal lv4;
-
-    /**
-     * 等级5收益
-     */
-    private BigDecimal lv5;
-
-    /**
-     * 等级6收益
-     */
-    private BigDecimal lv6;
 }

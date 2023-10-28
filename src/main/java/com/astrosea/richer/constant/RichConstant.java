@@ -5,32 +5,32 @@ import java.math.BigDecimal;
 public class RichConstant {
 
     /**
-     * 稀有度 lv1
+     * 稀有度 lv1 数量占总比
      */
     public static final BigDecimal LV1 = new BigDecimal("0.50");
 
     /**
-     * 稀有度 lv2
+     * 稀有度 lv2 数量占总比
      */
     public static final BigDecimal LV2 = new BigDecimal("0.12");
 
     /**
-     * 稀有度 lv3
+     * 稀有度 lv3 数量占总比
      */
     public static final BigDecimal LV3 = new BigDecimal("0.09");
 
     /**
-     * 稀有度 lv4
+     * 稀有度 lv4 数量占总比
      */
     public static final BigDecimal LV4 = new BigDecimal("0.09");
 
     /**
-     * 稀有度 lv5
+     * 稀有度 lv5 数量占总比
      */
     public static final BigDecimal LV5 = new BigDecimal("0.11");
 
     /**
-     * 稀有度 lv6
+     * 稀有度 lv6 数量占总比
      */
     public static final BigDecimal LV6 = new BigDecimal("0.05");
 
@@ -42,32 +42,32 @@ public class RichConstant {
      */
 
     /**
-     * 每张 nft 稀有度占百分比 lv1 1.0个狗狗币
+     * 每张 lv1 nft 稀有度占百分比  1.0个狗狗币
      */
     public static final BigDecimal LV1P = new BigDecimal("0.0000625");
 
     /**
-     * 每张 nft 稀有度占百分比 lv2 1.9个狗狗币
+     * 每张 lv2 nft 稀有度占百分比 1.9个狗狗币
      */
     public static final BigDecimal LV2P = new BigDecimal("0.00012");
 
     /**
-     * 每张 nft 稀有度占百分比 lv3 2.8 个狗狗币
+     * 每张 lv3 nft 稀有度占百分比 2.8 个狗狗币
      */
     public static final BigDecimal LV3P = new BigDecimal("0.00018");
 
     /**
-     * 每张 nft 稀有度占百分比 lv4 4.8个狗狗币
+     * 每张 lv4 nft 稀有度占百分比 4.8个狗狗币
      */
     public static final BigDecimal LV4P = new BigDecimal("0.0003");
 
     /**
-     * 每张 nft 稀有度占百分比 lv5 9.6 个狗狗币
+     * 每张 lv5 nft 稀有度占百分比 9.6 个狗狗币
      */
     public static final BigDecimal LV5P = new BigDecimal("0.0006044");
 
     /**
-     * 每张 nft 稀有度占百分比 lv6 44.4个狗狗币
+     * 每张 lv6 nft 稀有度占百分比 44.4个狗狗币
      */
     public static final BigDecimal LV6P = new BigDecimal("0.00277778");
 

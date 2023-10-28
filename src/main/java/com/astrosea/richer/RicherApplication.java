@@ -1,4 +1,4 @@
-package com.astrosea.richersea.richer;
+package com.astrosea.richer;
 
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;

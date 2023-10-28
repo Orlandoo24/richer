@@ -13,7 +13,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @NoArgsConstructor
 @TableName("rich_order")
-public class RichOrderDo extends BaseEntity {
+public class OrderDo extends BaseEntity {
 
     /**
      * 订单ID
@@ -34,36 +34,6 @@ public class RichOrderDo extends BaseEntity {
      * 奖励数量
      */
     private BigDecimal rewardAmt;
-
-    /**
-     * 稀有度1
-     */
-    private Boolean lv1amt;
-
-    /**
-     * 稀有度2
-     */
-    private Boolean lv2amt;
-
-    /**
-     * 稀有度3
-     */
-    private Boolean lv3amt;
-
-    /**
-     * 稀有度4
-     */
-    private Boolean lv4amt;
-
-    /**
-     * 稀有度5
-     */
-    private Boolean lv5amt;
-
-    /**
-     * 稀有度6
-     */
-    private Boolean lv6amt;
 
     /**
      * 状态

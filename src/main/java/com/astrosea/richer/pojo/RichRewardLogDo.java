@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
@@ -21,13 +22,23 @@ public class RichRewardLogDo extends BaseEntity {
     private String address;
 
     /**
-     * 累加收益，领取后置0
+     * 累加收益，领取后置 0
      */
     private BigDecimal totalReward;
 
     /**
+     * 收益最后累加时间
+     */
+    private LocalDate updateReward;
+
+    /**
      * 最后领取日期
      */
-    private LocalDateTime latest;
+    private LocalDate latest;
+
+    /**
+     * 最后领取具体时间
+     */
+    private LocalDateTime latestDetail;
 
 }

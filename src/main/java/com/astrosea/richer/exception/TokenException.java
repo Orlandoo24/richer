@@ -1,12 +1,12 @@
 package com.astrosea.richer.exception;
 
 
-import com.astrosea.richer.constant.RpcCode;
+import com.astrosea.richer.constant.JiaRuHttpCode;
 
 /**
  * 业务逻辑异常 Exception
  */
-public final class BizException extends RuntimeException {
+public final class TokenException extends RuntimeException {
 
     private static final long serialVersionUID = 4462646530730074145L;
 
@@ -23,17 +23,17 @@ public final class BizException extends RuntimeException {
     /**
      * 空构造方法，避免反序列化问题
      */
-    public BizException() {
+    public TokenException() {
     }
 
-    public BizException(Integer code, String message) {
+    public TokenException(Integer code, String message) {
         this.code = code;
         this.message = message;
     }
 
-	public BizException(String message) {
+	public TokenException(String message) {
         super(message);
-		this.code = RpcCode.BIZ_ERROR;
+		this.code = JiaRuHttpCode.TOKEN_ERROR;
 		this.message = message;
 	}
 
@@ -41,12 +41,12 @@ public final class BizException extends RuntimeException {
         return code;
     }
 
-    public BizException setCode(Integer code) {
+    public TokenException setCode(Integer code) {
         this.code = code;
         return this;
     }
 
-	public BizException setMessage(String message) {
+	public TokenException setMessage(String message) {
 		this.message = message;
 		return this;
 	}

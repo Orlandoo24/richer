@@ -1,16 +1,17 @@
 package com.astrosea.richer.pojo;
 
-import com.astrosea.richer.utils.BaseEntity;
+
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-@TableName("tax_all_nft")
-public class TaxAllNftDo extends BaseEntity {
+@TableName("tax_1of1_nft")
+public class Tax1of1NftDo extends BaseEntity {
 
     /**
      * nft 内部 id
@@ -44,7 +45,7 @@ public class TaxAllNftDo extends BaseEntity {
     private String rarity;
 
     /**
-     * OSS url
+     * url
      */
     private String imgUrl;
 
@@ -68,6 +69,10 @@ public class TaxAllNftDo extends BaseEntity {
      */
     private Integer sellStatus;
 
+    /**
+     * 发售标记
+     */
     private String otherJson;
 
 }
+

@@ -4,11 +4,11 @@ package com.astrosea.richer.exception;
 import com.astrosea.richer.constant.RpcCode;
 
 /**
- * 业务逻辑异常 Exception
+ * 流程处理异常 Exception
  */
-public final class BizException extends RuntimeException {
+public final class PubPayException extends RuntimeException {
 
-    private static final long serialVersionUID = 4462646530730074145L;
+    private static final long serialVersionUID = 3771622198365372253L;
 
     /**
      * 业务错误码
@@ -23,15 +23,15 @@ public final class BizException extends RuntimeException {
     /**
      * 空构造方法，避免反序列化问题
      */
-    public BizException() {
+    public PubPayException() {
     }
 
-    public BizException(Integer code, String message) {
+    public PubPayException(Integer code, String message) {
         this.code = code;
         this.message = message;
     }
 
-	public BizException(String message) {
+	public PubPayException(String message) {
         super(message);
 		this.code = RpcCode.BIZ_ERROR;
 		this.message = message;
@@ -41,17 +41,16 @@ public final class BizException extends RuntimeException {
         return code;
     }
 
-    public BizException setCode(Integer code) {
+    public PubPayException setCode(Integer code) {
         this.code = code;
         return this;
     }
 
-	public BizException setMessage(String message) {
+	public PubPayException setMessage(String message) {
 		this.message = message;
 		return this;
 	}
 
-    @Override
 	public String getMessage() {
         return message;
     }

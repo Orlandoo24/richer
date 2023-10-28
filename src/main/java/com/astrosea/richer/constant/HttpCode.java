@@ -24,8 +24,16 @@ public class HttpCode {
 	/**
 	 * 请求参数不合法
 	 */
-	public static final int BAD_REQUEST = 4000;
+	public static final int BAD_REQUEST_4000 = 4000;
 
-	public static final int INNER_ERROR = 5000;
+	/**
+	 * 内部错误
+	 */
+	public static final int MYSQL_ERROR_5001 = 5001;
+
+	/**
+	 * 内部错误
+	 */
+	public static final int INNER_ERROR_5000 = 5000;
 
 }

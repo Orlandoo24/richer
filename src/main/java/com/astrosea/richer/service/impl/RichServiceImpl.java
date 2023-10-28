@@ -1,31 +1,39 @@
 package com.astrosea.richer.service.impl;
 
-
+import cn.hutool.http.HttpException;
+import cn.hutool.http.HttpResponse;
+import cn.hutool.http.HttpUtil;
+import cn.hutool.json.JSONObject;
+import cn.hutool.json.JSONUtil;
+import com.astrosea.richer.constant.HttpCode;
 import com.astrosea.richer.mapper.*;
+import com.astrosea.richer.param.ClaimCheckParam;
 import com.astrosea.richer.param.FillBaseParam;
-import com.astrosea.richer.param.RicherParam;
-import com.astrosea.richer.pojo.RichHolderDo;
-import com.astrosea.richer.pojo.RichOrderDo;
+import com.astrosea.richer.param.GetCoinsParam;
+import com.astrosea.richer.param.QueryCoinsParam;
+import com.astrosea.richer.pojo.OrderDo;
 import com.astrosea.richer.pojo.RichRewardBaseDo;
 import com.astrosea.richer.pojo.RichRewardLogDo;
 import com.astrosea.richer.response.Response;
 import com.astrosea.richer.service.RichService;
+import com.astrosea.richer.utils.SHA256Util;
 import com.astrosea.richer.vo.GiveVo;
+import com.astrosea.richer.vo.QueryCoinsVo;
 import com.baomidou.mybatisplus.core.toolkit.IdWorker;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.List;
-import java.util.Objects;
 
-import static com.astrosea.richer.constant.HttpCode.BIZ_ERROR;
-import static com.astrosea.richer.constant.RichConstant.*;
+import static com.astrosea.richer.constant.HttpCode.*;
+import static com.astrosea.richer.constant.OrderConstant.*;
 
-
+@Slf4j
 @Service
 public class RichServiceImpl implements RichService {
 
@@ -36,8 +44,7 @@ public class RichServiceImpl implements RichService {
     RewardBaseMapper rewardBaseMapper;
 
     @Autowired
-    RichOrderMapper orderMapper;
-
+    OrderMapper orderMapper;
 
     @Autowired
     RichHolderMapper holderMapper;
@@ -45,16 +52,52 @@ public class RichServiceImpl implements RichService {
     @Autowired
     RichRewardLogMapper logMapper;
 
-
+    /**
+     * 单纯填写今天的收益数据
+     * @param
+     * @return
+     */
+    @Transactional
     @Override
-    public Boolean isRicher(String address) {
+    public Response<RichRewardBaseDo> fillBase(FillBaseParam param) {
+        // 转换为精确到天的日期数据
+        LocalDate today = LocalDateTime.now().toLocalDate();
+        // 获取 base
+        RichRewardBaseDo baseDo = rewardBaseMapper.selectOne(Wrappers.lambdaQuery(RichRewardBaseDo.class)
+                .eq(RichRewardBaseDo::getRewData, today));
+        if (baseDo != null) {
+            return Response.successMsg(null, "already fill today");
+        }
+
+        /**
+         * 更新当天的矿场收益数据
+         */
+        baseDo = new RichRewardBaseDo();
+        baseDo.setRewBase(Long.valueOf(param.getBase()));
+        baseDo.setRewData(today);
+        int insert = rewardBaseMapper.insert(baseDo);
+        if (insert == 0) {
+            return Response.error(HttpCode.MYSQL_ERROR_5001, "fillBase database error");
+        }
+
+        return Response.success(baseDo);
+    }
+
+
+    /**
+     * 判断当前用户能不能领取收益
+     * @param address
+     * @return
+     */
+    @Override
+    public Boolean claimJudger(String address) {
         if (address == null) {
             Response.error(BIZ_ERROR, "address cannot be null");
         }
 
-        Boolean isRicher = false;
+        Boolean couldClaim = false;
 
-        // 再判断今天有无领取收益
+        // 获取累加表实体数据
         RichRewardLogDo logDo = logMapper.selectOne(Wrappers.lambdaQuery(RichRewardLogDo.class)
                 .eq(RichRewardLogDo::getAddress, address));
 
@@ -62,78 +105,123 @@ public class RichServiceImpl implements RichService {
         BigDecimal totalReward = logDo.getTotalReward();
 
         // 获取最新领取时间
-        LocalDateTime latest = logDo.getLatest();
+        LocalDate latest = logDo.getLatest();
 
         // 获取当前日期和时间
-        LocalDateTime now = LocalDateTime.now();
+        LocalDate today = LocalDateTime.now().toLocalDate();
 
-        // 判断latest的日期部分与当前日期的日期部分是否相等,相等则今天已经领取过
-        boolean hadGet = latest.toLocalDate().isEqual(now.toLocalDate());
-
-        // 有资格 & 今天没领过
-        if (totalReward != BigDecimal.ZERO && !hadGet) {
-            isRicher = true;
+        // 持有 nft && 当前的收益不为 0 && 最新的领取时间 && 不是今天
+        if (!totalReward.equals(BigDecimal.ZERO) && !latest.isEqual(today)) {
+            couldClaim = true;
         }
-        return isRicher;
+        return couldClaim;
     }
+
+
+
 
     /**
-     * 查询获取累加收益
-     * @param address
+     * 收益领取总接口
+     * @param param
      * @return
      */
+    @Transactional
     @Override
-    public BigDecimal reward(String address) {
-        RichRewardLogDo logDo = logMapper.selectOne(Wrappers.lambdaQuery(RichRewardLogDo.class)
-                .eq(RichRewardLogDo::getAddress, address));
-        BigDecimal totalReward = logDo.getTotalReward();
-        return totalReward;
-    }
-
-    @Override
-    public RichOrderDo creatOrder(String address, BigDecimal rewAmt) {
-        RichOrderDo order = new RichOrderDo();
-        // 生成订单 id
-        Long orderId = IdWorker.getId();
-        order.setRichOrderId(orderId);
-
-        // 收益领取人钱包地址
-        order.setAddress(address);
-
-        // 生成当前时间戳
-        // 获取当前日期和时间
-        LocalDateTime now = LocalDateTime.now();
-        order.setOrderTime(now);
-
-        // 填写当前订单需要发放的金额
-        order.setRewardAmt(rewAmt);
-
-        orderMapper.insert(order);
-
-        return order;
-    }
-
-    @Override
-    public Response<GiveVo> throwDollar(RicherParam param) {
+    public Response claim(GetCoinsParam param) {
 
         String address = param.getAddress();
 
         // 判断有无资格领取
-        Boolean isRicher = isRicher(address);
+        Boolean couldClaim = claimJudger(address);
 
-        if (isRicher) {
-            // 查询累加收益
+        if (couldClaim) {
+            // 收益数
             BigDecimal reward = reward(address);
 
-            // 生成订单数据
-            RichOrderDo orderDo = creatOrder(address, reward);
+            // 订单 id
+            Long orderId = creatOrder(address, reward);
 
-            // 返回订单数据给链上进行收益发放
+            // 构建收益数据
             GiveVo giveVo = new GiveVo();
-            giveVo.setAddress(orderDo.getAddress());
-            giveVo.setOrderId(orderDo.getRichOrderId());
-            giveVo.setRewAmt(orderDo.getRewardAmt());
-            return Response.success(giveVo);
+            giveVo.setAddress(address);// 收益接收人
+            giveVo.setAmount(reward);// 收益数
+            giveVo.setOrderId(orderId);
+
+            // 构建盐
+            String json = JSONUtil.toJsonStr(giveVo);
+            String salt = "CFIrxG7nDq4h2TofxTGlmm220E7UI2JBxf";
+
+            // json 加盐
+            String jsonSalt = json + salt;
+
+            // 256 盐
+            String hash = SHA256Util.encrypt(jsonSalt);
+
+            // 构造请求体 jsonObj
+            JSONObject requestBody = new JSONObject();
+            requestBody.set("address", address);
+            requestBody.set("amount", reward);
+            requestBody.set("hash", hash);
+            requestBody.set("orderId", orderId);
+
+
+            // 构造链上 url
+            String chainUrl = "http://154.221.27.158:3000/claim";
+
+            try {
+            // 发送 http 请求给链上
+                HttpResponse response = HttpUtil.createPost(chainUrl)
+                        .body(requestBody.toString())// 请求体
+                        .timeout(30000)// 设置超时时间（单位：毫秒）
+                        .execute();
+                // 打印返回结果日志
+                log.info("请求链上接口响应结果 : {}", response);
+
+                // 响应结果判断
+                int status = response.getStatus();
+
+
+
+                if (status == 200) {
+
+                    Long responseOrderId = Long.valueOf(requestBody.get("orderId").toString());
+
+                    int update = orderMapper.update(null, Wrappers.lambdaUpdate(OrderDo.class)
+                            .eq(OrderDo::getRichOrderId, responseOrderId)
+                            .set(OrderDo::getStatus, CHECKING_2));
+
+                } else {
+                    switch (status) {
+                        case 400:
+                            // 传参错误
+                            log.info("传参错误");
+                        case 401:
+                            // 认证不通过
+                            log.info("认证不通过");
+                        case 403:
+                            // ip 不在白名单
+                            log.info("ip 不在白名单");
+                        case 500:
+                            // 服务器无法处理
+                            log.info("服务器无法处理");
+                            break;
+                        default:
+                            // 收益领取未知错误
+                            log.info("收益领取未知错误");
+                    }
+                    log.info("收益领取错误:{}" ,response);
+                    return Response.error(1000, "claim error");
+                }
+                
+                // 返回领取成功的响应
+                return Response.success(response);
+            } catch (HttpException e) {
+                // 处理 Http 请求发生异常的情况
+                e.printStackTrace();
+                log.info("请求链上接口响应结果异常 : {}", e);
+                return Response.error(HttpCode.BIZ_ERROR, e.toString());
+            }
+
         } else {
             return Response.successMsg(null, "Received earnings or ineligible for earnings");
         }
@@ -141,138 +229,97 @@ public class RichServiceImpl implements RichService {
     }
 
     @Override
-    public Response<Boolean> giveCB(Long orderId) {
+    public Long creatOrder(String address, BigDecimal gains) {
 
-        int update = orderMapper.update(null, Wrappers.lambdaUpdate(RichOrderDo.class)
-                .eq(RichOrderDo::getRichOrderId, orderId)
-                .set(RichOrderDo::getStatus, 2));
+        OrderDo orderDo = new OrderDo();
+        Long orderId = IdWorker.getId();
+        // 获取最新领取时间
+        // 获取当前日期和时间
+        LocalDateTime current = LocalDateTime.now();
 
-        if (update == 0) {
-            return Response.successMsg(null, "order update fail");
+        orderDo.setRichOrderId(orderId);
+        orderDo.setAddress(address);
+        orderDo.setOrderTime(current);
+        orderDo.setStatus(GIVING_1);
+
+        int insert = orderMapper.insert(orderDo);
+
+        if (insert == 0) {
+            return -1L;
         }
+
+        return orderId;
+    }
+
+    @Override
+    public Response claimCheck(ClaimCheckParam param) {
+
+        OrderDo orderDo = orderMapper.selectOne(Wrappers.lambdaQuery(OrderDo.class)
+                .eq(OrderDo::getRichOrderId, param.getOrderId()));
+
+        int orderRes = 0;
+        int logUpdate = 0;
+        if (orderDo != null && orderDo.getAddress().equals(param.getAddress()) && orderDo.getRewardAmt().equals(param.getReward())){
+                orderRes = orderMapper.update(null, Wrappers.lambdaUpdate(OrderDo.class)
+                        .eq(OrderDo::getRichOrderId, param.getOrderId())
+                        .set(OrderDo::getStatus, CHECKED_3));
+
+            // 成功:将当前用户的累计收益置 0 , 并且将最新领取时间置为今天
+            logUpdate = logMapper.update(null, Wrappers.lambdaUpdate(RichRewardLogDo.class)
+                    .eq(RichRewardLogDo::getAddress, orderDo.getAddress())
+                    .set(RichRewardLogDo::getTotalReward, BigDecimal.ZERO)// 收益数清零
+                    .set(RichRewardLogDo::getLatest, LocalDateTime.now().toLocalDate()));// 最新领取时间更新为今天
+        } else {
+            return Response.error(INNER_ERROR_5000, "当前收益发放不合法");
+        }
+
+        if (orderRes == 0 || logUpdate == 0) {
+            return Response.error(MYSQL_ERROR_5001, "校验收益订单数据库错误");
+        }
+
         return Response.success();
     }
 
-    @Override
-    public RichRewardBaseDo rewardCounter(Integer baseRew, LocalDateTime now) {
-        RichRewardBaseDo baseDo = new RichRewardBaseDo();
+    /**
+     * 领取收益时查询个人累加收益
+     * @param address
+     * @return
+     */
 
-        // 塞时间
-        baseDo.setRewData(now);
+    public BigDecimal reward(String address) {
+        RichRewardLogDo logDo = logMapper.selectOne(Wrappers.lambdaQuery(RichRewardLogDo.class)
+                .eq(RichRewardLogDo::getAddress, address));
 
-        // 构建 base 数据
-        BigDecimal base = BigDecimal.valueOf(baseRew);
-        baseDo.setRewBase(base);
-
-        // 构建当天的收益
-        BigDecimal lv1 = base.multiply(LV1).multiply(LV1P);
-        BigDecimal lv2 = base.multiply(LV2).multiply(LV2P);
-        BigDecimal lv3 = base.multiply(LV3).multiply(LV3P);
-        BigDecimal lv4 = base.multiply(LV4).multiply(LV4P);
-        BigDecimal lv5 = base.multiply(LV5).multiply(LV5P);
-        BigDecimal lv6 = base.multiply(LV6).multiply(LV6P);
-
-        // 塞当天的收益数据
-        baseDo.setLv1(lv1);
-        baseDo.setLv2(lv2);
-        baseDo.setLv3(lv3);
-        baseDo.setLv4(lv4);
-        baseDo.setLv5(lv5);
-        baseDo.setLv6(lv6);
-
-        // 记录 base 数据
-        int baseRes = rewardBaseMapper.insert(baseDo);
-
-        if (baseRes == 0) {
-            throw new RuntimeException("base update fail");
+        if (logDo == null) {
+            return BigDecimal.ZERO;
         }
-        return baseDo;
-    }
 
-    @Override
-    public Response rewUpdate(FillBaseParam base) {
-        return null;
+        BigDecimal totalReward = logDo.getTotalReward();
+        return totalReward;
     }
-
 
     /**
-     * 在这个例子中，
-     * 使用了 Stream API 来对 for 循环进行了转换。
-     * 首先，使用 logList.stream() 方法将 List 转换为 Stream。
-     * 然后，使用 map 方法将每个元素映射为一个新元素。
-     * 在这里，我们将每个 RichRewardLogDo 对象转换为一个新的 RichRewardLogDo 对象，并计算出当天的收益。
-     * 如果该对象不满足条件，则返回 null。接着，使用 filter 方法过滤掉所有为 null 的元素。最后，使用 forEach 方法对每个元素进行操作，并将结果更新到数据库中。
+     * 用户查询收益
      * @param param
      * @return
      */
     @Override
-    public Response<Boolean> fillBase(FillBaseParam param) {
-        LocalDateTime now = LocalDateTime.now();
+    public Response<QueryCoinsVo> query(QueryCoinsParam param) {
 
-        // 获取 base
-        BigDecimal base = BigDecimal.valueOf(param.getBase());
-        RichRewardBaseDo baseDo = rewardBaseMapper.selectOne(Wrappers.lambdaQuery(RichRewardBaseDo.class)
-                .eq(RichRewardBaseDo::getRewData, now));
-        if (baseDo != null) {
-            return Response.successMsg(null, "already fill today");
+        RichRewardLogDo logDo = logMapper.selectOne(Wrappers.lambdaQuery(RichRewardLogDo.class)
+                .eq(RichRewardLogDo::getAddress, param.getAddress()));
+
+        /**
+         * 当前用户不在收益领取范围内
+          */
+        if (logDo == null) {
+            return Response.error(403, "No current user");
         }
 
-        // 生成当天的 base 收益数据
-        baseDo = rewardCounter(param.getBase(), now);
-
-        // 根据base数据计算当天的收益数据，全表扫描生成所有会员当天的累加收益数据
-        List<RichRewardLogDo> logList = logMapper.selectList(null);
-        logList.stream()
-                .map(logDo -> {
-                    String address = logDo.getAddress();
-
-                    // 当前会员 nft 持有情况
-                    RichHolderDo holder = holderMapper.selectOne(Wrappers.lambdaQuery(RichHolderDo.class)
-                            .eq(RichHolderDo::getAddress, address));
-
-                    // 持有超过一个 nft 则有资格领取收益
-                    BigDecimal lv1amt = BigDecimal.valueOf(holder.getLv1amt());
-                    BigDecimal lv2amt = BigDecimal.valueOf(holder.getLv2amt());
-                    BigDecimal lv3amt = BigDecimal.valueOf(holder.getLv3amt());
-                    BigDecimal lv4amt = BigDecimal.valueOf(holder.getLv4amt());
-                    BigDecimal lv5amt = BigDecimal.valueOf(holder.getLv5amt());
-                    BigDecimal lv6amt = BigDecimal.valueOf(holder.getLv6amt());
-
-                    // 转成 BigDecimal
-                    BigDecimal nftAmt = lv1amt.add(lv2amt)
-                            .add(lv3amt)
-                            .add(lv4amt)
-                            .add(lv5amt)
-                            .add(lv6amt);
-
-                    // 如果累加个数等于0则返回null
-                    if (nftAmt.compareTo(BigDecimal.ZERO) == 0) {
-                        return null;
-                    }
-
-                    // 计算当天的收益
-                    BigDecimal todayRew = lv1amt.multiply(LV1P)
-                            .add(lv2amt.multiply(LV2P))
-                            .add(lv3amt.multiply(LV3P))
-                            .add(lv4amt.multiply(LV4P))
-                            .add(lv5amt.multiply(LV5P))
-                            .add(lv6amt.multiply(LV6P))
-                            .multiply(base)
-                            .setScale(1, RoundingMode.HALF_UP);
-
-                    // 累加今天的收益
-                    logDo.setLatest(now);
-                    logDo.setTotalReward(logDo.getTotalReward().add(todayRew));
-                    return logDo;
-                })
-                .filter(Objects::nonNull)
-                .forEach(logDo -> {
-                    int logUpdate = logMapper.update(null, Wrappers.lambdaUpdate(RichRewardLogDo.class)
-                            .set(RichRewardLogDo::getTotalReward, logDo.getTotalReward())
-                            .set(RichRewardLogDo::getLatest, logDo.getLatest())
-                            .eq(RichRewardLogDo::getAddress, logDo.getAddress()));
-                });
-        return Response.success();
+        BigDecimal rew = logDo.getTotalReward();
+        QueryCoinsVo vo = new QueryCoinsVo();
+        vo.setCoins(rew.toString());
+        return Response.success(vo);
     }
 
 
