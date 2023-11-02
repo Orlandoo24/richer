@@ -18,7 +18,7 @@ public class OrderDo extends BaseEntity {
     /**
      * 订单ID
      */
-    private Long richOrderId;
+    private Long orderId;
 
     /**
      * 钱包地址

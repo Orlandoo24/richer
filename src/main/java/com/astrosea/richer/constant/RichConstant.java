@@ -71,5 +71,41 @@ public class RichConstant {
      */
     public static final BigDecimal LV6P = new BigDecimal("0.00277778");
 
+    /**
+     * 按照矿场产量 1.6w 狗狗币算
+     */
+    /**
+     * 每张 lv1 nft 稀有度占百分比  1.0个狗狗币
+     */
+    public static final BigDecimal LV1VALUE = new BigDecimal("1");
+
+    /**
+     * 每张 lv2 nft 稀有度占百分比 2个狗狗币
+     */
+    public static final BigDecimal LV2VALUE = new BigDecimal("2");
+
+    /**
+     * 每张 lv3 nft 稀有度占百分比 3 个狗狗币
+     */
+    public static final BigDecimal LV3VALUE = new BigDecimal("3");
+
+    /**
+     * 每张 lv4 nft 稀有度占百分比 5 个狗狗币
+     */
+    public static final BigDecimal LV4VALUE = new BigDecimal("5");
+
+    /**
+     * 每张 lv5 nft 稀有度占百分比 10 个狗狗币
+     */
+    public static final BigDecimal LV5VALUE = new BigDecimal("10");
+
+    /**
+     * 每张 lv6 nft 稀有度占百分比 50 个狗狗币
+     */
+    public static final BigDecimal LV6VALUE = new BigDecimal("50");
+
+
+
+
 
 }

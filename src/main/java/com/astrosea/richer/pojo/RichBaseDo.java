@@ -6,18 +6,24 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 @TableName("rich_reward_base")
-public class RichRewardBaseDo extends BaseEntity {
+public class RichBaseDo extends BaseEntity {
 
     /**
      * 当天矿场收益
      */
     private Long rewBase;
+
+    /**
+     * 当天收益基数
+     */
+    private BigDecimal decBase;
 
     /**
      * 收益日期

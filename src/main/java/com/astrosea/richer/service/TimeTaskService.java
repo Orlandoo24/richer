@@ -4,6 +4,7 @@ import com.astrosea.richer.param.CreatGainParam;
 import com.astrosea.richer.response.Response;
 import com.astrosea.richer.vo.UpdateGainsVo;
 
+import java.math.BigDecimal;
 import java.sql.SQLException;
 import java.time.LocalDate;
 
@@ -18,10 +19,11 @@ public interface TimeTaskService {
 
     /**
      * @param baseRew
+     * @param decBase
      * @param now
      * @return
      */
-    Response rewardCounter(Long baseRew, LocalDate now) throws SQLException;
+    Response updateBase(Long baseRew, BigDecimal decBase, LocalDate now) throws SQLException;
 
 
 }

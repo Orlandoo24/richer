@@ -3,16 +3,16 @@ package com.astrosea.richer.controller;
 import com.astrosea.richer.mapper.RewardBaseMapper;
 import com.astrosea.richer.param.ClaimCheckParam;
 import com.astrosea.richer.param.CreatGainParam;
-import com.astrosea.richer.param.GetCoinsParam;
 import com.astrosea.richer.param.QueryCoinsParam;
-import com.astrosea.richer.pojo.RichRewardBaseDo;
+import com.astrosea.richer.pojo.RichBaseDo;
 import com.astrosea.richer.response.Response;
+import com.astrosea.richer.service.ClaimService;
 import com.astrosea.richer.service.RichService;
 import com.astrosea.richer.service.TimeTaskService;
 import com.astrosea.richer.vo.BaseRewVo;
 import com.astrosea.richer.vo.QueryCoinsVo;
 import com.astrosea.richer.vo.UpdateGainsVo;
-import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,6 +38,9 @@ public class RichController {
     RichService richService;
 
     @Autowired
+    ClaimService claimService;
+
+    @Autowired
     TimeTaskService timeTaskService;
 
     private static final Logger logger = LoggerFactory.getLogger(RichController.class);
@@ -57,7 +60,6 @@ public class RichController {
         return response;
     }
 
-
     /**
      * 查询当天的矿场产出
      * @param request
@@ -65,21 +67,28 @@ public class RichController {
      */
     @GetMapping("/queryBase")
     public Response<BaseRewVo> baseRew(HttpServletRequest request){
+        BaseRewVo vo = new BaseRewVo();
 
         // 获取当前日期和时间
         LocalDateTime now = LocalDateTime.now();
         // 转换为精确到天的日期数据
         LocalDate today = now.toLocalDate();
 
-        RichRewardBaseDo baseDo = rewardBaseMapper.selectOne(Wrappers.lambdaQuery(RichRewardBaseDo.class)
-                .select(RichRewardBaseDo::getRewBase)
-                .eq(RichRewardBaseDo::getRewData, today));
+
+        QueryWrapper<RichBaseDo> queryWrapper = new QueryWrapper<>();
+        queryWrapper.select("rew_base")
+                .eq("is_deleted", false)
+                .orderByDesc("rew_data")
+                .last("LIMIT 1");
+
+        RichBaseDo baseDo = rewardBaseMapper.selectOne(queryWrapper);
 
         if (baseDo == null) {
-           return Response.successMsg(null,"Today's earnings have not yet been generated");
+            vo.setRewBase(1888L);
+           return Response.successMsg(vo,"OMG!");
         }
 
-        BaseRewVo vo = new BaseRewVo();
+
         vo.setRewBase(baseDo.getRewBase());
 
         return Response.success(vo);
@@ -116,42 +125,25 @@ public class RichController {
      */
     @GetMapping("/claim")
     public Response claim(@RequestParam String address) {
-        // 获取当天的收益
-        GetCoinsParam param = new GetCoinsParam();
-        param.setAddress(address);
-        Response response = richService.claim(param);
 
-        log.info("getCoins{}", address);
-        // 在接口请求开始处记录时间戳
-        long startTime = System.currentTimeMillis();
-
-        // 在接口请求结束处记录时间戳
-        long endTime = System.currentTimeMillis();
-        // 计算请求的执行时间
-        long executionTime = endTime - startTime;
-        // 将执行时间记录到日志中
-        logger.info("getCoins 接口响应速度：{} 毫秒", executionTime);
-        log.info("getCoins{}", address);
+        Response response = claimService.claim(address);
 
         return response;
     }
 
-    @GetMapping("/claimCheck")
-    public Response claimCheck(@RequestParam ClaimCheckParam param) {
+    /**
+     * 此接口只做收益校验
+     * @param
+     * @return
+     */
+    @PostMapping("/claimCheck")
+    public Response claimCheck(@RequestBody ClaimCheckParam param) {
 
         log.info("claimCheck param{}", param);
-        // 在接口请求开始处记录时间戳
-        long startTime = System.currentTimeMillis();
+        log.info("claimCheck order{}", param.getOrderId());
 
-        Response response = richService.claimCheck(param);
 
-        // 在接口请求结束处记录时间戳
-        long endTime = System.currentTimeMillis();
-        // 计算请求的执行时间
-        long executionTime = endTime - startTime;
-        // 将执行时间记录到日志中
-        logger.info("claimCheck 接口响应速度：{} 毫秒", executionTime);
-        log.info("claimCheck{}", response);
+        Response response = claimService.claimCheck(param);
 
         return response;
     }

@@ -42,6 +42,14 @@ public class Response<T> implements Serializable {
 		return result;
 	}
 
+	public static <T> Response<T> successMsg(String message) {
+		Response<T> result = new Response<>();
+		result.requestId = MDC.get("REQUEST_ID");
+		result.code = HttpCode.SUCCESS;
+		result.message = message;
+		return result;
+	}
+
 	public static <T> Response<T> successMsg(T data, String message) {
 		Response<T> result = new Response<>();
 		result.requestId = MDC.get("REQUEST_ID");

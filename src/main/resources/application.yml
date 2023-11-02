@@ -21,13 +21,13 @@ spring:
 
 server:
     port: 8089    #HTTPS协议默认端口号为443，需要使用其他端口时，您可以在此处自定义。
-#    ssl:
-#        key-alias: astroseaSSL200    #证书别名
-#        key-store-password: 123astrosea   #填写pfx-password.txt文件内的密码。
-#        key-store-type: JKS #JKS格式证书密钥库类型。PFX格式的证书密钥库类型为PCKS12。
-#        key-store: classpath:ssl200.jks   #您需要使用实际的证书名称替换domain_name.pfx。
-#        trust-store: classpath:ssl200.jks
-#        trust-store-password: 123astrosea
+    ssl:
+        key-alias: astroseaSSL200    #证书别名
+        key-store-password: 123astrosea   #填写pfx-password.txt文件内的密码。
+        key-store-type: JKS #JKS格式证书密钥库类型。PFX格式的证书密钥库类型为PCKS12。
+        key-store: classpath:ssl249.jks   #您需要使用实际的证书名称替换domain_name.pfx。
+        trust-store: classpath:ssl249.jks
+        trust-store-password: 123astrosea
 
 mybatis-plus:
     global-config:

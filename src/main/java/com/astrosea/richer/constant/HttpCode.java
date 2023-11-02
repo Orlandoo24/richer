@@ -36,4 +36,11 @@ public class HttpCode {
 	 */
 	public static final int INNER_ERROR_5000 = 5000;
 
+	/**
+	 * claim 不合法
+	 */
+	public static final int CLAIM_NOT_ALLOW_5002 = 5002;
+
+
+
 }
