@@ -19,6 +19,11 @@ public class PayConstant {
      */
     public static final int PUL_PAY = 2;
 
+    /**
+     * 补发 身份支付
+     */
+    public static final int RESENDER_PAY_3 = 3;
+
 
 
     /**
@@ -52,6 +57,11 @@ public class PayConstant {
      * 狗🐶币已到钱包
      */
     public static final int Received_3 = 3;
+
+    /**
+     * 狗🐶币已到钱包
+     */
+    public static final int RESEND_DONE_4 = 4;
 
     /**
      * OG 需支付的🐶币

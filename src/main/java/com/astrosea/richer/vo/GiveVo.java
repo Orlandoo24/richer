@@ -13,6 +13,7 @@ public class GiveVo {
     // 能领取的收益
     private BigDecimal amount;
 
+    // 订单 id
     private String orderId;
 
 }
