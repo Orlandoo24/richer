@@ -18,12 +18,33 @@ public interface TimeTaskService {
     Response<UpdateGainsVo> updateGains(CreatGainParam param) throws SQLException;
 
     /**
-     * @param baseRew
-     * @param decBase
-     * @param now
+     * @param base
+     * @param rewBase
+     * @param realDecBase
+     * @param today
+     * @param curHolderNum
      * @return
      */
-    Response updateBase(Long baseRew, BigDecimal decBase, LocalDate now) throws SQLException;
+    Response updateBase(BigDecimal base, BigDecimal rewBase, BigDecimal realDecBase,LocalDate today, Long curHolderNum) throws SQLException;
+
+
+    /**
+     * 1.先校验今天是否已经更新，避免重复累加
+     * 2.得出持有者数据
+     * 3.根据持有者计算 base * decBase = 1.5 rewBase
+     * 4.根据 1.5 rewBase 得出 2.4 rewBase
+     */
+    Response<UpdateGainsVo> timeTaskUpdateGains() throws SQLException;
+
+    /**
+     * @param base
+     * @param decBase
+     * @param now
+     * @param curHolderNum
+     * @return
+     */
+    Response timeTaskUpdateBase(BigDecimal base, BigDecimal decBase, LocalDate now, Long curHolderNum) throws SQLException;
+
 
 
 }

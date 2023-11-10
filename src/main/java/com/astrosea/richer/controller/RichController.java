@@ -2,7 +2,6 @@ package com.astrosea.richer.controller;
 
 import com.astrosea.richer.mapper.RewardBaseMapper;
 import com.astrosea.richer.param.ClaimCheckParam;
-import com.astrosea.richer.param.CreatGainParam;
 import com.astrosea.richer.param.QueryCoinsParam;
 import com.astrosea.richer.pojo.RichBaseDo;
 import com.astrosea.richer.response.Response;
@@ -11,7 +10,6 @@ import com.astrosea.richer.service.RichService;
 import com.astrosea.richer.service.TimeTaskService;
 import com.astrosea.richer.vo.BaseRewVo;
 import com.astrosea.richer.vo.QueryCoinsVo;
-import com.astrosea.richer.vo.UpdateGainsVo;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
@@ -20,7 +18,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
-import java.sql.SQLException;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -47,20 +45,6 @@ public class RichController {
 
 
     /**
-     * 1.填写当天矿场收益
-     * 2.添加收益的同时累加所有当时 nft 持有者的收益
-     * @param param
-     * @return
-     */
-    @PostMapping("/updateGains")
-    public Response<UpdateGainsVo> updateGains(@RequestBody CreatGainParam param) throws SQLException {
-        log.info("填写当天矿场收益入参{}", param);
-        Response<UpdateGainsVo> response = timeTaskService.updateGains(param);
-        log.info("填写当天矿场收益出参{}", response);
-        return response;
-    }
-
-    /**
      * 查询当天的矿场产出
      * @param request
      * @return
@@ -84,7 +68,7 @@ public class RichController {
         RichBaseDo baseDo = rewardBaseMapper.selectOne(queryWrapper);
 
         if (baseDo == null) {
-            vo.setRewBase(1888L);
+            vo.setRewBase(new BigDecimal(1888));
            return Response.successMsg(vo,"OMG!");
         }
 

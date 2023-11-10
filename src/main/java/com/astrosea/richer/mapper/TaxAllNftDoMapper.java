@@ -14,23 +14,23 @@ import java.util.List;
 public interface TaxAllNftDoMapper extends BaseMapper<TaxAllNftDo> {
     /*
     -- 持有者SQL
-    SELECT address,
-    SUM(CASE WHEN rarity = 'lv1' THEN 1 ELSE 0 END) AS lv1_count,
-    SUM(CASE WHEN rarity = 'lv2' THEN 1 ELSE 0 END) AS lv2_count,
-    SUM(CASE WHEN rarity = 'lv3' THEN 1 ELSE 0 END) AS lv3_count,
-    SUM(CASE WHEN rarity = 'lv4' THEN 1 ELSE 0 END) AS lv4_count,
-    SUM(CASE WHEN rarity = 'lv5' THEN 1 ELSE 0 END) AS lv5_count,
-    SUM(CASE WHEN rarity = 'lv6' THEN 1 ELSE 0 END) AS lv6_count
-    FROM (
-    SELECT address, rarity
-    FROM tax_all_nft
-    WHERE is_deleted = b'0' AND other_json = '1' AND sell_status = 1 AND tax_status = 1
-    UNION ALL
-    SELECT address, rarity
-    FROM tax_1of1_nft
-    WHERE is_deleted = b'0' AND other_json = '1' AND sell_status = 1 AND tax_status = 1
-    ) AS combined_table
-    GROUP BY address
+SELECT address,
+SUM(CASE WHEN rarity = 'lv1' THEN 1 ELSE 0 END) AS lv1_count,
+SUM(CASE WHEN rarity = 'lv2' THEN 1 ELSE 0 END) AS lv2_count,
+SUM(CASE WHEN rarity = 'lv3' THEN 1 ELSE 0 END) AS lv3_count,
+SUM(CASE WHEN rarity = 'lv4' THEN 1 ELSE 0 END) AS lv4_count,
+SUM(CASE WHEN rarity = 'lv5' THEN 1 ELSE 0 END) AS lv5_count,
+SUM(CASE WHEN rarity = 'lv6' THEN 1 ELSE 0 END) AS lv6_count
+FROM (
+SELECT address, rarity
+FROM tax_all_nft
+WHERE is_deleted = b'0' AND other_json = '1' AND sell_status = 1 AND tax_status = 1
+UNION ALL
+SELECT address, rarity
+FROM tax_1of1_nft
+WHERE is_deleted = b'0' AND other_json = '1' AND sell_status = 1 AND tax_status = 1
+) AS combined_table
+GROUP BY address
      */
     @Select("SELECT address, " +
             "SUM(CASE WHEN rarity = 'lv1' THEN 1 ELSE 0 END) AS lv1_count, " +

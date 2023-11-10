@@ -2,15 +2,17 @@ package com.astrosea.richer.param;
 
 import lombok.Data;
 
+import javax.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 @Data
 public class CreatGainParam {
 
-    private Long base;
 
-    private BigDecimal decBase;
+    @NotNull(message = "fakeRewBase不能为空")
+    private BigDecimal fakeRewBase;
 
-    private String operator;
+    @NotNull(message = "realDecBase不能为空")
+    private BigDecimal realDecBase;
 
 }

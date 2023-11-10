@@ -105,6 +105,22 @@ public class RichConstant {
     public static final BigDecimal LV6VALUE = new BigDecimal("50");
 
 
+    /**
+     * 每日基数 1.5
+     */
+    public static final BigDecimal DECBASE_1_5 = new BigDecimal("1.5");
+
+    /**
+     * 每日基数 1.5
+     */
+    public static final BigDecimal DECBASE_2_4 = new BigDecimal("2.4");
+
+    /**
+     * 假面板数据 1000
+     */
+    public static final BigDecimal FAKE_1000 = new BigDecimal("1000.0");
+
+
 
 
 

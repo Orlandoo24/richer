@@ -3,6 +3,8 @@ package com.astrosea.richer;
 import com.astrosea.richer.mapper.RewardBaseMapper;
 import com.astrosea.richer.mapper.RichRewardLogMapper;
 import com.astrosea.richer.mapper.TaxAllNftDoMapper;
+import com.astrosea.richer.mapper.TimeTaskMapper;
+import com.astrosea.richer.pojo.TimeTaskLogDo;
 import com.astrosea.richer.service.RichService;
 import com.astrosea.richer.vo.dto.HolderDto;
 import lombok.extern.slf4j.Slf4j;
@@ -41,10 +43,19 @@ class RicherApplicationTests {
 
     }
 
+    @Autowired
+    TimeTaskMapper timeTaskMapper;
+
+
     @Test
-    void fillTest() {
+    void logTest() {
 
-
+        TimeTaskLogDo logDo = new TimeTaskLogDo();
+        long orderId = System.currentTimeMillis();
+        String resJsonString = "";
+        logDo.setResLog(resJsonString);
+        logDo.setOrderId(orderId);
+        int insert = timeTaskMapper.insert(logDo);
 
     }
 

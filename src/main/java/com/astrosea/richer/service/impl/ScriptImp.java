@@ -214,6 +214,7 @@ public class ScriptImp implements ScriptService {
         statusCode = response.getStatus();
         log.info("statusCode:{}", statusCode);
         responseStr = response.toString();
+        String bodyStr = response.body().toString();
         log.info("responseStr:{}", responseStr);
 
         /**
@@ -221,7 +222,7 @@ public class ScriptImp implements ScriptService {
          */
         resenderMapper.update(null, Wrappers.lambdaUpdate(ResenderOrderDo.class)
                 .eq(ResenderOrderDo::getOrderId, dto.getOrderId())
-                .set(ResenderOrderDo::getResponseLog, "responseStr:"+responseStr+"statusCode:"+statusCode)
+                .set(ResenderOrderDo::getResponseLog, bodyStr)
                 .set(ResenderOrderDo::getPayStatus, RESEND_DONE_4));// 存储响应
 
 

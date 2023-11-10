@@ -13,12 +13,27 @@ public class UpdateGainsVo {
     /**
      * 收益数据
      */
-    private Long base;
+    private BigDecimal base;
 
     /**
-     * 收益基数
+     * 假收益基数
      */
-    private BigDecimal decBase;
+    private BigDecimal fakeRewBase;
+
+    /**
+     * 真收益基数
+     */
+    private BigDecimal realRewBase;
+
+    /**
+     * 假收益基数
+     */
+    private BigDecimal fakeDecBase;
+
+    /**
+     * 真实收益基数
+     */
+    private BigDecimal realDecBase;
 
     /***
      * 矿厂产出日期

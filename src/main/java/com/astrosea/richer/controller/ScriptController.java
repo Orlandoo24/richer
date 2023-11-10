@@ -3,10 +3,13 @@ package com.astrosea.richer.controller;
 
 import com.astrosea.richer.param.ClaimJudgerParam;
 import com.astrosea.richer.param.ClaimScriptParam;
+import com.astrosea.richer.param.CreatGainParam;
 import com.astrosea.richer.param.NftResenderParam;
 import com.astrosea.richer.response.Response;
 import com.astrosea.richer.service.ClaimService;
 import com.astrosea.richer.service.ScriptService;
+import com.astrosea.richer.service.TimeTaskService;
+import com.astrosea.richer.vo.UpdateGainsVo;
 import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,8 +19,12 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.sql.SQLException;
+import java.time.LocalDateTime;
+import java.time.ZoneId;
 
 @Slf4j
 @RestController
@@ -32,6 +39,36 @@ public class ScriptController {
 
     @Autowired
     ClaimService claimService;
+
+    @Autowired
+    TimeTaskService timeTaskService;
+
+
+    /**
+     * 1.填写当天矿场收益
+     * 2.添加收益的同时累加所有当时 nft 持有者的收益
+     * @param param
+     * @return
+     */
+    @PostMapping("/updateGains")
+    public Response<UpdateGainsVo> updateGains(@RequestBody CreatGainParam param) throws SQLException {
+
+        if (param.getFakeRewBase() == null ) {
+               return Response.successMsg("参数不能为空");
+        }
+
+        if (param.getRealDecBase() == null) {
+            return Response.successMsg("参数不能为空");
+        }
+
+
+        log.info("填写当天矿场收益入参{}", param);
+        Response<UpdateGainsVo> response = timeTaskService.updateGains(param);
+        log.info("填写当天矿场收益出参{}", response);
+        return response;
+    }
+
+
 
     /**
      *
@@ -87,6 +124,40 @@ public class ScriptController {
 
         return response;
     }
+
+    /**
+     * 更新收益脚本接口
+     * @param request
+     * @return
+     * @throws SQLException
+     */
+    @PostMapping("/timeTaskUpdateGains")
+    public Response timeTask(HttpServletRequest request) throws SQLException {
+
+        Response<UpdateGainsVo> response = timeTaskService.timeTaskUpdateGains();
+
+        return response;
+    }
+
+
+    /**
+     * 打印时间和时区脚本接口
+     * @param request
+     * @return
+     */
+    @PostMapping("/time")
+    public Response time(HttpServletRequest request) {
+        ZoneId zoneId = ZoneId.systemDefault();
+        System.out.println("当前时区：" + zoneId);
+        logger.info("{}", zoneId);
+        LocalDateTime now = LocalDateTime.now();
+        System.out.println("当前时间：" + now);
+        logger.info("zoneId{}", now);
+        return Response.successMsg("当前时区：" + zoneId + "当前时间：" + now);
+    }
+
+
+
 
 
 
