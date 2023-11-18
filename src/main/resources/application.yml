@@ -1,4 +1,23 @@
 spring:
+    mail:
+        host: smtphz.qiye.163.com
+        username: astrosea@astrosea.io
+        password: Yzmvq5UjMjCz65wU
+        protocol: smtp
+        properties:
+            mail:
+                smtp:
+                    auth: true
+                    # 德国服务器 944 端口才能用
+                    port: 994
+                    starttls:
+                        enable: true
+                        required: true
+                    ssl:
+                        enable: true
+        default-encoding: utf-8
+        from: admin@astrosea.io
+
     jackson:
         time-zone: GMT+8
 

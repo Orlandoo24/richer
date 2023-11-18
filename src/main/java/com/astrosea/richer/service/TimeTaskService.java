@@ -41,10 +41,13 @@ public interface TimeTaskService {
      * @param decBase
      * @param now
      * @param curHolderNum
+     * @param yesterdayBase
      * @return
      */
-    Response timeTaskUpdateBase(BigDecimal base, BigDecimal decBase, LocalDate now, Long curHolderNum) throws SQLException;
+    Response timeTaskUpdateBase(BigDecimal base, BigDecimal decBase, LocalDate now, Long curHolderNum, BigDecimal yesterdayBase) throws SQLException;
 
+
+    Response updateBaseRew(Integer newBaseRew);
 
 
 }

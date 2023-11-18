@@ -1,10 +1,7 @@
 package com.astrosea.richer.controller;
 
 
-import com.astrosea.richer.param.ClaimJudgerParam;
-import com.astrosea.richer.param.ClaimScriptParam;
-import com.astrosea.richer.param.CreatGainParam;
-import com.astrosea.richer.param.NftResenderParam;
+import com.astrosea.richer.param.*;
 import com.astrosea.richer.response.Response;
 import com.astrosea.richer.service.ClaimService;
 import com.astrosea.richer.service.ScriptService;
@@ -14,10 +11,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
@@ -154,6 +148,25 @@ public class ScriptController {
         System.out.println("当前时间：" + now);
         logger.info("zoneId{}", now);
         return Response.successMsg("当前时区：" + zoneId + "当前时间：" + now);
+    }
+
+    /**
+     * 修改矿场收益接口
+     * @param
+     * @return
+     * @throws SQLException
+     */
+    @PostMapping("/updateBaseRew")
+    public Response updateBaseRew(Integer newBaseRew) {
+
+        Response response = timeTaskService.updateBaseRew(newBaseRew);
+
+        return response;
+    }
+
+    @GetMapping("/orderInfo")
+    public Response orderInfo(@RequestParam QueryOrderInfoParam param) {
+        return null;
     }
 
 

@@ -6,9 +6,13 @@ import com.astrosea.richer.pojo.RichBaseDo;
 import com.astrosea.richer.pojo.RichRewardLogDo;
 import com.astrosea.richer.response.Response;
 import com.astrosea.richer.service.TimeTaskService;
+import com.astrosea.richer.utils.RandomUtil;
+import com.astrosea.richer.vo.BaseRewVo;
 import com.astrosea.richer.vo.UpdateGainsVo;
 import com.astrosea.richer.vo.dto.HolderDto;
 import com.astrosea.richer.vo.dto.TodayRewDto;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
+import com.baomidou.mybatisplus.core.conditions.update.UpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -265,7 +269,10 @@ public class TimeTaskImp implements TimeTaskService {
         if (baseDo != null) {
             return Response.successMsg(null, "already fill today");
         }
-        Response response = timeTaskUpdateBase(base , DECBASE_2_4 , todayData, Long.valueOf(holderList.size()));
+
+        BigDecimal lastBaseRew = getLastBaseRew();// 获取最新的一条收益
+
+        Response response = timeTaskUpdateBase(base , DECBASE_2_4 , todayData, Long.valueOf(holderList.size()), lastBaseRew);
         if (response.getCode() == MYSQL_ERROR_5001) {
             return response;
         }
@@ -285,6 +292,32 @@ public class TimeTaskImp implements TimeTaskService {
         vo.setCurHolderNum(holderList.size());
 
         return Response.success(vo);
+    }
+
+    public BigDecimal getLastBaseRew() {
+
+
+        // 获取当前日期和时间
+        LocalDateTime now = LocalDateTime.now();
+        // 转换为精确到天的日期数据
+        LocalDate today = now.toLocalDate();
+
+
+        QueryWrapper<RichBaseDo> queryWrapper = new QueryWrapper<>();
+        queryWrapper.select("rew_base")
+                .eq("is_deleted", false)
+                .orderByDesc("rew_data")
+                .last("LIMIT 1");
+
+        RichBaseDo baseDo = rewardBaseMapper.selectOne(queryWrapper);
+
+        if (baseDo == null) {
+
+            return new BigDecimal(1888);
+        }
+
+
+        return baseDo.getRewBase();
     }
 
     /**
@@ -334,19 +367,26 @@ public class TimeTaskImp implements TimeTaskService {
      * @param decBase
      * @param now
      * @param curHolderNum
+     * @param yesterdayBase
      * @return
      * @throws SQLException
      */
     @Override
-    public Response timeTaskUpdateBase(BigDecimal base, BigDecimal decBase, LocalDate now, Long curHolderNum) throws SQLException {
+    public Response timeTaskUpdateBase(BigDecimal base, BigDecimal decBase, LocalDate now, Long curHolderNum, BigDecimal yesterdayBase) throws SQLException {
         RichBaseDo baseDo = new RichBaseDo();
 
         // 构建用户总收益数据
         baseDo.setBase(base);
 
         // 构建实际收益发放数据（若填的是 fakeDecBase 则是飘高的
-        BigDecimal FAKE_1000 = new BigDecimal("1000.0");
-        baseDo.setRewBase(base.multiply(decBase).add(FAKE_1000));
+//        BigDecimal FAKE_1000 = new BigDecimal("1000.0");
+
+        BigDecimal bigDecimal_10 = new BigDecimal("10.0");
+        int randomNum = RandomUtil.getRandomNum();// 个位数
+        log.warn("randomNum ：{}", randomNum);
+
+        BigDecimal newBaseRew = yesterdayBase.add(bigDecimal_10).add(BigDecimal.valueOf(randomNum));// 最新的一条收益加十几
+        baseDo.setRewBase(newBaseRew);
 
         // 填写倍数基数
         baseDo.setDecBase(decBase);
@@ -366,7 +406,6 @@ public class TimeTaskImp implements TimeTaskService {
 
         return Response.success();
     }
-
 
     /**
      * 2.根据持有情况累加今天的收益
@@ -417,6 +456,29 @@ public class TimeTaskImp implements TimeTaskService {
 
         return Response.success();
     }
+
+    @Override
+    public Response updateBaseRew(Integer newBaseRew) {
+
+        BaseRewVo vo = new BaseRewVo();
+
+        UpdateWrapper<RichBaseDo> wrapper = new UpdateWrapper<>();
+        wrapper.set("rew_base", newBaseRew)
+                .eq("is_deleted", false)
+                .orderByDesc("rew_data")
+                .last("LIMIT 1");
+
+
+        int update = rewardBaseMapper.update(null, wrapper);
+
+        if (update == 0) {
+            return Response.successMsg("update fail!");
+        }
+
+
+        return Response.success();
+    }
+
 
 
 
