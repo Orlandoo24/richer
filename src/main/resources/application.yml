@@ -41,8 +41,15 @@ spring:
 #        username: astro
 #        password: 123456
 
+    redis:
+        host: localhost
+        port: 6379
+        password: 123@jiaru
+#        password:
+
+
 server:
-    port: 8089    #HTTPS协议默认端口号为443，需要使用其他端口时，您可以在此处自定义。
+    port: 8717    #HTTPS协议默认端口号为443，需要使用其他端口时，您可以在此处自定义。
     ssl:
         key-alias: astroseaSSL200    #证书别名
         key-store-password: 123astrosea   #填写pfx-password.txt文件内的密码。

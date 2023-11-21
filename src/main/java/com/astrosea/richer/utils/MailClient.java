@@ -11,6 +11,7 @@ import org.springframework.stereotype.Component;
 import javax.mail.internet.MimeMessage;
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.List;
 
 @Component
 public class MailClient {
@@ -42,16 +43,31 @@ public class MailClient {
         }
     }
 
+    public int sendMail(List<String> toList, String subject, String content) throws IOException {
+        try (ServerSocket serverSocket = new ServerSocket(0)) {
+            int port = serverSocket.getLocalPort();
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(message);
+            helper.setFrom(from);
+            helper.setTo(toList.toArray(new String[0]));
+            helper.setSubject(subject);
+            helper.setText(content, true);
+            mailSender.send(helper.getMimeMessage());
+            return port;
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     /**
      * 构建邮件 html
      * @param to
-     * @param code
+     * @param mainContent
      * @param remark
      * @return
      */
-    public String getHtmlContent(String to, String code, String remark) {
+    public String getHtmlContent(String to, String mainContent, String remark) {
         String userEmail = to;
-        String registerCode = code;
 
         StringBuilder content = new StringBuilder();
         content.append("<!DOCTYPE html>\n");
@@ -113,9 +129,9 @@ public class MailClient {
         content.append("        <img src=\"https://pic.astrosea.io/astro-email/email-page-top.png\" alt=\"\">\n");
         content.append("        <div class=\"content\">\n");
         content.append("            <h3>尊敬的用户：" + userEmail + "</h3>\n");  // 在这里插入变量 email
-        content.append("            <p>" + remark + "</p>\n");  // 邮件内容备注 remark
+        content.append("            <p>" + remark.replaceAll("\n", "<br>") + "</p>\n");// 邮件内容备注 remark
         content.append("            <div>\n");
-        content.append("                <span class=\"eamil-code\">" + registerCode + "</span>\n");
+        content.append("                <pre><span class=\"email-code\">" + mainContent.replaceAll("\n", "<br>") + "</span></pre>\n");
         content.append("            </div>\n");
         content.append("        </div>\n");
         content.append("        <img class=\"bottom-img\" src=\"https://pic.astrosea.io/astro-email/email-page-bottom.png\" alt=\"\">\n");
